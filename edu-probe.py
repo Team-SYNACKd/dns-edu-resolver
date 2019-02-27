@@ -66,8 +66,8 @@ def dns_resolve(domain):
             print('Answer Section:', rdata)
 
         dns_id = response.id
-        opcode = response.opcode()
-        rcode = response.rcode()
+        opcode = dns.opcode.to_text(response.opcode())
+        rcode = dns.rcode.to_text(response.rcode())
         qdcount = len(response.question)
         nscount = len(response.authority[0])
         arcount = len(response.additional)
@@ -89,7 +89,7 @@ def dns_resolve(domain):
         if(response.flags & dns.flags.CD):
             cd = 1
 
-        print(dns_id, opcode, rcode, qdcount, nscount, arcount, ancount, qr, aa, tc, rd, ra, ad, cd)
+        print(domain, dns_id, opcode, rcode, qdcount, nscount, arcount, ancount, qr, aa, tc, rd, ra, ad, cd)
 
     except dns.resolver.NoAnswer:
         print("There is no Answer for the quried domain" )
