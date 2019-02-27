@@ -65,6 +65,7 @@ def dns_resolve(domain):
         for rdata in response.answer:
             print('Answer Section:', rdata)
 
+        #FIXME: Could try to figure out a better way to see active flags.
         if(response.flags & dns.flags.QR):
             qr = 1
         if(response.flags & dns.flags.AA):
