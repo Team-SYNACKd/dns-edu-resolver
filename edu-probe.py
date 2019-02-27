@@ -38,6 +38,7 @@ def dns_resolve(domain):
     tested = ();
 
     ADDITIONAL_RDCLASS = 65535
+    qr, aa, tc, rd, ra, ad, cd = [0 for _ in range(7)]
 
     nameserver = random.choice(edu_nameservers)
     print("resolving against: ", nameserver)
@@ -63,6 +64,23 @@ def dns_resolve(domain):
 
         for rdata in response.answer:
             print('Answer Section:', rdata)
+
+        if(response.flags & dns.flags.QR):
+            qr = 1
+        if(response.flags & dns.flags.AA):
+            aa = 1
+        if(response.flags & dns.flags.TC):
+            tc = 1
+        if(response.flags & dns.flags.RD):
+            rd = 1
+        if(response.flags & dns.flags.RA):
+            ra = 1
+        if(response.flags & dns.flags.AD):
+            ad = 1
+        if(response.flags & dns.flags.CD):
+            cd = 1
+
+        print( qr, aa, tc, rd, ra, ad, cd)
 
     except dns.resolver.NoAnswer:
         pass
