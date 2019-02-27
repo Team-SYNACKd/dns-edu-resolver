@@ -65,6 +65,14 @@ def dns_resolve(domain):
         for rdata in response.answer:
             print('Answer Section:', rdata)
 
+        dns_id = response.id
+        opcode = response.opcode()
+        rcode = response.rcode()
+        qdcount = len(response.question)
+        nscount = len(response.authority[0])
+        arcount = len(response.additional)
+        ancount = len(response.answer)
+
         #FIXME: Could try to figure out a better way to see active flags.
         if(response.flags & dns.flags.QR):
             qr = 1
@@ -81,7 +89,7 @@ def dns_resolve(domain):
         if(response.flags & dns.flags.CD):
             cd = 1
 
-        print( qr, aa, tc, rd, ra, ad, cd)
+        print(dns_id, opcode, rcode, qdcount, nscount, arcount, ancount, qr, aa, tc, rd, ra, ad, cd)
 
     except dns.resolver.NoAnswer:
         print("There is no Answer for the quried domain" )
