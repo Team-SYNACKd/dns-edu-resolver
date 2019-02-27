@@ -84,7 +84,23 @@ def dns_resolve(domain):
         print( qr, aa, tc, rd, ra, ad, cd)
 
     except dns.resolver.NoAnswer:
-        pass
+        print("There is no Answer for the quried domain" )
+    except dns.resolver.NoNameservers:
+        print("All nameservers failed to answer the query")
+    except dns.resolver.NXDOMAIN:
+        print("No such domain exists")
+    except dns.exception.DNSException:
+        print("Unhandled DNS Exception")
+    except dns.exception.Timeout:
+        print("DNS timeout")
+    except dns.exception.FormError:
+        print("DNS message malformat")
+    except dns.exception.SyntaxError:
+        print("Text input malformat")
+    except dns.exception.TooBig:
+        print("DNS message is too big")
+    except dns.exception.UnexpectedEnd:
+        print("Text input ended unexpectedly")
 
 def main(argv):
     if len(argv) == 1:
