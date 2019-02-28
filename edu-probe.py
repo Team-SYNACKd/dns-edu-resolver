@@ -22,14 +22,14 @@ root_nameservers = (
         'm.root-servers.net.'
         );
 
-edu_nameservers = (
-        '192.5.6.30',   #a.edu-servers.net.
-        '192.26.92.30', #c.edu-servers.net.
-        '192.31.80.30', #d.edu-servers.net.
-        '192.35.51.30', #f.edu-servers.net.
-        '192.42.93.30', #g.edu-servers.net.
-        '192.41.162.30',#l.edu-servers.net.
-        );
+edu_nameservers = {
+        "a.edu-servers.net.": '192.5.6.30',
+        "c.edu-servers.net.": '192.26.92.30',
+        "d.edu-servers.net.": '192.31.80.30',
+        "f.edu-servers.net.": '192.35.51.30',
+        "g.edu-servers.net.": '192.42.93.30',
+        "l.edu-servers.net.": '192.41.162.30',
+        }
 
 
 def dns_resolve(domain):
@@ -40,19 +40,20 @@ def dns_resolve(domain):
     ADDITIONAL_RDCLASS = 65535
     qr, aa, tc, rd, ra, ad, cd = [0 for _ in range(7)]
 
-    nameserver = random.choice(edu_nameservers)
-    print("resolving against: ", nameserver)
+    nameserver = random.choice(list(edu_nameservers))
+    nameserver_ip = edu_nameservers[nameserver]
+    print("resolving against: ", nameserver,":", nameserver_ip)
 
     try:
         myResolver = dns.resolver.Resolver()
-        myResolver.nameservers = nameserver
+        myResolver.nameservers = nameserver_ip
 
         request = dns.message.make_query(domain, dns.rdatatype.NS)
         request.flags |= dns.flags.AD
         request.find_rrset(request.additional, dns.name.root,
                 ADDITIONAL_RDCLASS, dns.rdatatype.OPT, create=True, force_unique=True)
 
-        response = dns.query.udp(request, nameserver)
+        response = dns.query.udp(request, nameserver_ip)
 
         # To get the Rdatas from the RRset
         for rdata in response.authority[0]:
@@ -89,7 +90,7 @@ def dns_resolve(domain):
         if(response.flags & dns.flags.CD):
             cd = 1
 
-        print(domain, dns_id, opcode, rcode, qdcount, nscount, arcount, ancount, qr, aa, tc, rd, ra, ad, cd)
+        print(domain, nameserver, dns_id, opcode, rcode, qdcount, nscount, arcount, ancount, qr, aa, tc, rd, ra, ad, cd)
 
     except dns.resolver.NoAnswer:
         print("There is no Answer for the quried domain" )
