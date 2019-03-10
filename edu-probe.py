@@ -82,15 +82,23 @@ def dns_resolve(domain):
         print('Header', domain, nameserver, nameserver_ip, dns_id, opcode, rcode, qdcount, nscount, arcount, ancount, qr, aa, tc, rd, ra, ad, cd)
 
         # To get the Rdatas from the RRset
-        for rdata in response.authority[0]:
-            print('Authority Section:', rdata)
-
-        for rdata in response.additional:
-            print('Addtional Section:', rdata)
-
-
         for rdata in response.answer:
-            print('Answer Section:', rdata)
+            r_class = response.answer.rdclass
+            r_type = response.answer.rdtype
+            r_ttl = respons.answer.ttl
+            print('Answer Section:', domain, nameserver, r_class, r_type, r_ttl, rdata)
+
+        for rdata in response.authority[0]:
+            r_class = response.authority[0].rdclass
+            r_type = response.authority[0].rdtype
+            r_ttl = response.authority[0].ttl
+            print('Authority Section:', domain, nameserver, r_class, r_type, r_ttl, rdata)
+
+        for rdata in response.additional[0]:
+            r_class = response.additional[0].rdclass
+            r_type = response. additional[0].rdtype
+            r_ttl = response.additional[0].ttl
+            print('Addtional Section:', domain, nameserver, r_class, r_type, r_ttl, rdata)
 
     except dns.resolver.NoAnswer:
         print("There is no Answer for the quried domain" )
