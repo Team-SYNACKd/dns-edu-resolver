@@ -55,17 +55,6 @@ def dns_resolve(domain):
 
         response = dns.query.udp(request, nameserver_ip)
 
-        # To get the Rdatas from the RRset
-        for rdata in response.authority[0]:
-            print('Authority Section:', rdata)
-
-        for rdata in response.additional:
-            print('Addtional Section:', rdata)
-
-
-        for rdata in response.answer:
-            print('Answer Section:', rdata)
-
         dns_id = response.id
         opcode = dns.opcode.to_text(response.opcode())
         rcode = dns.rcode.to_text(response.rcode())
@@ -90,7 +79,18 @@ def dns_resolve(domain):
         if(response.flags & dns.flags.CD):
             cd = 1
 
-        print(domain, nameserver, dns_id, opcode, rcode, qdcount, nscount, arcount, ancount, qr, aa, tc, rd, ra, ad, cd)
+        print('Header', domain, nameserver, nameserver_ip, dns_id, opcode, rcode, qdcount, nscount, arcount, ancount, qr, aa, tc, rd, ra, ad, cd)
+
+        # To get the Rdatas from the RRset
+        for rdata in response.authority[0]:
+            print('Authority Section:', rdata)
+
+        for rdata in response.additional:
+            print('Addtional Section:', rdata)
+
+
+        for rdata in response.answer:
+            print('Answer Section:', rdata)
 
     except dns.resolver.NoAnswer:
         print("There is no Answer for the quried domain" )
