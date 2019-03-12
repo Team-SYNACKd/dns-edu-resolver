@@ -22,38 +22,46 @@ root_nameservers = (
         'm.root-servers.net.'
         );
 
-edu_nameservers = {
-        "a.edu-servers.net.": '192.5.6.30',
-        "c.edu-servers.net.": '192.26.92.30',
-        "d.edu-servers.net.": '192.31.80.30',
-        "f.edu-servers.net.": '192.35.51.30',
-        "g.edu-servers.net.": '192.42.93.30',
-        "l.edu-servers.net.": '192.41.162.30',
-        }
+edu_nameservers = (
+        'a.edu-servers.net.',
+        'c.edu-servers.net.',
+        'd.edu-servers.net.',
+        'f.edu-servers.net.',
+        'g.edu-servers.net.',
+        'l.edu-servers.net.',
+        )
 
 
-def dns_resolve(domain):
+def dns_resolve(domain, nameservers):
     # tested tuple comes in handy to check if the root or .edu servers are
     # visited ones
-    tested = ();
+    tested = []
+    serverlist_key = "nameserver"
+    serverlist = {}
+    serverlist.setdefault(serverlist_key, [])
 
     ADDITIONAL_RDCLASS = 65535
     qr, aa, tc, rd, ra, ad, cd = [0 for _ in range(7)]
 
-    nameserver = random.choice(list(edu_nameservers))
-    nameserver_ip = edu_nameservers[nameserver]
-    print("resolving against: ", nameserver,":", nameserver_ip)
+    #nameserver_ip = edu_nameservers[nameserver]
+    print("resolving against: ", nameservers)
+
+    #FIXME: Hack to get the IP of the resolving nameservers. We need to find better ways if possible
+    #FIXME: Catch any expections that can occur
+    myResolver = dns.resolver.Resolver()
+    nameserver_ip = myResolver.query(str(nameservers), dns.rdatatype.A)
+
+    for ip in nameserver_ip:
+        print(nameserver_ip.rrset)
 
     try:
-        myResolver = dns.resolver.Resolver()
-        myResolver.nameservers = nameserver_ip
-
-        request = dns.message.make_query(domain, dns.rdatatype.NS)
+        request = dns.message.make_query(str(domain), dns.rdatatype.NS)
         request.flags |= dns.flags.AD
         request.find_rrset(request.additional, dns.name.root,
                 ADDITIONAL_RDCLASS, dns.rdatatype.OPT, create=True, force_unique=True)
 
-        response = dns.query.udp(request, nameserver_ip)
+        for ip in nameserver_ip:
+            response = dns.query.udp(request, str(ip))
 
         dns_id = response.id
         opcode = dns.opcode.to_text(response.opcode())
@@ -79,7 +87,8 @@ def dns_resolve(domain):
         if(response.flags & dns.flags.CD):
             cd = 1
 
-        print('Header', domain, nameserver, nameserver_ip, dns_id, opcode, rcode, qdcount, nscount, arcount, ancount, qr, aa, tc, rd, ra, ad, cd)
+        for ip in nameserver_ip:
+            print('Header', domain, nameservers, ip, dns_id, opcode, rcode, qdcount, nscount, arcount, ancount, qr, aa, tc, rd, ra, ad, cd)
 
         # To get the Rdatas from the RRset
         if (ancount > 0):
@@ -87,21 +96,28 @@ def dns_resolve(domain):
                 r_class = response.answer.rdclass
                 r_type = response.answer.rdtype
                 r_ttl = respons.answer.ttl
-                print('Answer Section:', domain, nameserver, r_class, r_type, r_ttl, rdata)
+                print('Answer Section:', domain, nameservers, r_class, r_type, r_ttl, rdata)
+                if (r_type is 2):
+                    serverlist[serverlist_key].append(rdata)
 
         if (nscount > 0):
             for rdata in response.authority[0]:
                 r_class = response.authority[0].rdclass
                 r_type = response.authority[0].rdtype
                 r_ttl = response.authority[0].ttl
-                print('Authority Section:', domain, nameserver, r_class, r_type, r_ttl, rdata)
+                print('Authority Section:', domain, nameservers, r_class, r_type, r_ttl, rdata)
+                if (r_type is 2):
+                    serverlist[serverlist_key].append(rdata)
 
         if (arcount > 0):
             for rdata in response.additional[0]:
                 r_class = response.additional[0].rdclass
                 r_type = response. additional[0].rdtype
                 r_ttl = response.additional[0].ttl
-                print('Addtional Section:', domain, nameserver, r_class, r_type, r_ttl, rdata)
+                print('Addtional Section:', domain, nameservers, r_class, r_type, r_ttl, rdata)
+
+        for nameservers in serverlist[serverlist_key]:
+            dns_resolve(domain, nameservers)
 
     except dns.resolver.NoAnswer:
         print("There is no Answer for the quried domain" )
@@ -128,7 +144,8 @@ def main(argv):
     else:
         for arg in sys.argv[1:]:
             # caller function/wrapper should be here
-            dns_resolve(arg)
+            edu_nameserver = random.choice(list(edu_nameservers))
+            dns_resolve(arg, edu_nameserver)
             print("Args: ", arg)
 
 if __name__ == "__main__":
