@@ -67,7 +67,7 @@ def dns_resolve(domain, nameservers):
         opcode = dns.opcode.to_text(response.opcode())
         rcode = dns.rcode.to_text(response.rcode())
         qdcount = len(response.question)
-        nscount = len(response.authority[0])
+        nscount = len(response.authority)
         arcount = len(response.additional)
         ancount = len(response.answer)
 
@@ -92,10 +92,10 @@ def dns_resolve(domain, nameservers):
 
         # To get the Rdatas from the RRset
         if (ancount > 0):
-            for rdata in response.answer:
-                r_class = response.answer.rdclass
-                r_type = response.answer.rdtype
-                r_ttl = respons.answer.ttl
+            for rdata in response.answer[0]:
+                r_class = response.answer[0].rdclass
+                r_type = response.answer[0].rdtype
+                r_ttl = response.answer[0].ttl
                 print('Answer Section:', domain, nameservers, r_class, r_type, r_ttl, rdata)
                 if (r_type is 2):
                     serverlist[serverlist_key].append(rdata)
