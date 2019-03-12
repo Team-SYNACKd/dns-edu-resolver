@@ -139,14 +139,12 @@ def dns_resolve(domain, nameservers):
         print("Text input ended unexpectedly")
 
 def main(argv):
-    if len(argv) == 1:
-        print("Usage: python edu-probe.py uic.edu")
-    else:
-        for arg in sys.argv[1:]:
             # caller function/wrapper should be here
-            edu_nameserver = random.choice(list(edu_nameservers))
-            dns_resolve(arg, edu_nameserver)
-            print("Args: ", arg)
+            while True:
+                domain = input()
+                edu_nameserver = random.choice(list(edu_nameservers))
+                dns_resolve(domain, edu_nameserver)
+            print("Domain: ", domain)
 
 if __name__ == "__main__":
     main(sys.argv)
