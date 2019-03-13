@@ -32,27 +32,25 @@ edu_nameservers = (
         )
 
 
+visited = []
+tested_edu_server = []
+
 def dns_resolve(domain, nameservers):
     # tested tuple comes in handy to check if the root or .edu servers are
     # visited ones
-    tested = []
-    serverlist_key = "nameserver"
-    serverlist = {}
-    serverlist.setdefault(serverlist_key, [])
+    serverlist = []
 
     ADDITIONAL_RDCLASS = 65535
     qr, aa, tc, rd, ra, ad, cd = [0 for _ in range(7)]
 
     #nameserver_ip = edu_nameservers[nameserver]
     print("resolving against: ", nameservers)
+    visited.append(nameservers)
 
     #FIXME: Hack to get the IP of the resolving nameservers. We need to find better ways if possible
     #FIXME: Catch any expections that can occur
     myResolver = dns.resolver.Resolver()
     nameserver_ip = myResolver.query(str(nameservers), dns.rdatatype.A)
-
-    for ip in nameserver_ip:
-        print(nameserver_ip.rrset)
 
     try:
         request = dns.message.make_query(str(domain), dns.rdatatype.NS)
@@ -98,7 +96,7 @@ def dns_resolve(domain, nameservers):
                 r_ttl = response.answer[0].ttl
                 print('Answer Section:', domain, nameservers, r_class, r_type, r_ttl, rdata)
                 if (r_type is 2):
-                    serverlist[serverlist_key].append(rdata)
+                    serverlist.append(rdata)
 
         if (nscount > 0):
             for rdata in response.authority[0]:
@@ -107,7 +105,7 @@ def dns_resolve(domain, nameservers):
                 r_ttl = response.authority[0].ttl
                 print('Authority Section:', domain, nameservers, r_class, r_type, r_ttl, rdata)
                 if (r_type is 2):
-                    serverlist[serverlist_key].append(rdata)
+                    serverlist.append(rdata)
 
         if (arcount > 0):
             for rdata in response.additional[0]:
@@ -116,8 +114,11 @@ def dns_resolve(domain, nameservers):
                 r_ttl = response.additional[0].ttl
                 print('Addtional Section:', domain, nameservers, r_class, r_type, r_ttl, rdata)
 
-        for nameservers in serverlist[serverlist_key]:
-            dns_resolve(domain, nameservers)
+        for server in range(0, len(serverlist)):
+            if serverlist[server] in visited:
+                pass
+            else:
+                dns_resolve(domain, serverlist[server])
 
     except dns.resolver.NoAnswer:
         print("There is no Answer for the quried domain" )
@@ -141,10 +142,14 @@ def dns_resolve(domain, nameservers):
 def main(argv):
             # caller function/wrapper should be here
             while True:
-                domain = input()
+                domain = input("Enter the domain: ")
                 edu_nameserver = random.choice(list(edu_nameservers))
-                dns_resolve(domain, edu_nameserver)
-            print("Domain: ", domain)
+                if edu_nameserver in tested_edu_server:
+                    pass
+                else:
+                    tested_edu_server.append(edu_nameserver)
+                    dns_resolve(domain, edu_nameserver)
+                    del visited[:] # If querying same domain - delete what exits to query again fresh
 
 if __name__ == "__main__":
     main(sys.argv)
